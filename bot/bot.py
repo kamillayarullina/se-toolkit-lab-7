@@ -11,9 +11,8 @@ logging.basicConfig(level=logging.INFO)
 # Load environment variables (if using .env)
 from dotenv import load_dotenv
 load_dotenv()
-
 # Backend configuration
-LMS_API_KEY = os.getenv("dummy")
+LMS_API_KEY = os.getenv("LMS_API_KEY")
 BASE_URL = "http://localhost:42002"
 
 # ---------------------------
@@ -64,7 +63,7 @@ async def health(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     else:
         item_count = len(data)
-        await update.message.reply_text(f"✅ Backend is healthy. {item_count} items available.")
+        await update.message.reply_text(f"Backend is healthy. {item_count} items available.")
 
 async def labs(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = await call_backend("/items/")
