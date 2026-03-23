@@ -95,3 +95,70 @@ By the end of this lab, you should be able to say:
 ### Optional
 
 1. [Flutter Web Chatbot](./lab/tasks/optional/task-1.md)
+
+## Deploy
+
+The bot runs as a Docker container alongside the backend. This section covers deployment.
+
+### Prerequisites
+
+Ensure the following environment variables are set in `.env.docker.secret`:
+
+- `BOT_TOKEN` — Telegram bot token from @BotFather
+- `LMS_API_KEY` — API key for the LMS backend
+- `LLM_API_KEY` — API key for the LLM service
+- `LLM_API_BASE_URL` — LLM API endpoint (e.g., `http://localhost:42005/v1`)
+- `LLM_API_MODEL` — Model name (e.g., `qwen-plus`)
+
+### Start the bot
+
+```bash
+cd ~/se-toolkit-lab-7
+
+# Stop any running bot process (if using nohup)
+pkill -f "bot.py" 2>/dev/null
+
+# Build and start all services
+docker compose --env-file .env.docker.secret up --build -d
+
+# Check status
+docker compose --env-file .env.docker.secret ps
+```
+
+You should see `bot` running alongside `backend`, `postgres`, and `caddy`.
+
+### Verify the bot is healthy
+
+```bash
+# Check bot logs
+docker compose --env-file .env.docker.secret logs bot --tail 20
+```
+
+**Expected logs:**
+- "Application started" — bot connected to Telegram
+- "HTTP Request: POST .../getUpdates" — bot is polling for messages
+- No Python tracebacks
+
+### Test in Telegram
+
+Send these commands to your bot:
+
+1. `/start` — Welcome message with inline buttons
+2. `/help` — List of available commands
+3. `/health` — Backend status
+4. "what labs are available?" — Natural language query (LLM-powered)
+
+### Troubleshooting
+
+| Symptom | Solution |
+|---------|----------|
+| Bot container restarting | Check logs: `docker compose logs bot` |
+| `/health` fails | Ensure `LMS_API_BASE_URL=http://backend:8000` (not `localhost`) |
+| LLM queries fail | Ensure `LLM_API_BASE_URL` uses `host.docker.internal` |
+| Build fails at `uv sync` | Ensure `uv.lock` is copied in Dockerfile |
+
+### Stop the bot
+
+```bash
+docker compose --env-file .env.docker.secret down
+```

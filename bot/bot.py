@@ -4,7 +4,7 @@ import logging
 import json
 import httpx
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, CallbackQueryHandler
 import openai
 
 # Configure logging
@@ -12,7 +12,10 @@ logging.basicConfig(level=logging.INFO)
 
 # Load environment variables
 from dotenv import load_dotenv
-load_dotenv('.env.bot.secret')
+# Use absolute path based on script location, not current working directory
+import pathlib
+bot_dir = pathlib.Path(__file__).parent.resolve()
+load_dotenv(bot_dir / '.env.bot.secret')
 
 # Backend configuration
 LMS_API_KEY = os.getenv("LMS_API_KEY")
@@ -26,7 +29,7 @@ if not LMS_API_KEY:
                     break
     except:
         pass
-BASE_URL = "http://localhost:42002"
+BASE_URL = os.getenv("LMS_API_BASE_URL") or "http://localhost:42002"
 
 # LLM configuration
 LLM_API_KEY = os.getenv("LLM_API_KEY") or "dummy"
@@ -340,9 +343,9 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Main
 # ---------------------------
 def main():
-    token = os.getenv("TELEGRAM_BOT_TOKEN")
+    token = os.getenv("BOT_TOKEN")
     if not token:
-        logging.error("TELEGRAM_BOT_TOKEN not set. Exiting.")
+        logging.error("BOT_TOKEN not set. Exiting.")
         sys.exit(1)
 
     application = Application.builder().token(token).build()
