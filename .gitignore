@@ -14,4 +14,4 @@ tmp
 
 **/settings.local.json
 
-.lycheecache
+.lycheecache.env
